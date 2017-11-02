@@ -25,7 +25,7 @@ public class ScanActivity extends AppCompatActivity implements BarcodeReader.Bar
 
     @Override
     public void onScanned(Barcode barcode) {
-        Intent intent = new Intent(ScanActivity.this, ViewProduct.class);
+        Intent intent = new Intent(ScanActivity.this, ProductListActivity.class);
         intent.putExtra("upcCode", barcode.displayValue);
         startActivity(intent);
     }

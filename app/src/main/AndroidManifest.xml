@@ -21,7 +21,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".ScanActivity" />
-        <activity android:name=".ViewProduct"></activity>
+        <activity android:name=".ProductListActivity"></activity>
     </application>
 
 </manifest>

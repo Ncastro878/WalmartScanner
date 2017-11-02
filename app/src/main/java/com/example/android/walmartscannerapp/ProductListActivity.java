@@ -1,39 +1,31 @@
 package com.example.android.walmartscannerapp;
 
 import android.content.Context;
-import android.media.Image;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.annotation.GlideModule;
-import com.bumptech.glide.module.AppGlideModule;
-
-import com.bumptech.glide.load.data.InputStreamRewinder;
 import com.google.gson.Gson;
 import com.squareup.picasso.Picasso;
-
-import org.w3c.dom.Text;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-import static android.icu.lang.UCharacter.GraphemeClusterBreak.V;
-
-public class ViewProduct extends AppCompatActivity  {
+public class ProductListActivity extends AppCompatActivity  {
 
     private String WALMART_API_KEY = "86y8cm3ujvuwnp2mncp76jbt";
     Gson gson;
@@ -44,6 +36,14 @@ public class ViewProduct extends AppCompatActivity  {
     TextView mBarcodeNumberTextView;
     TextView mPriceTextView;
     static Context mContext;
+
+    /**
+     * New RecyclerView/SQLite Variables
+     */
+    RecyclerView mRecyclerview;
+    RecyclerView.LayoutManager mLayoutManager;
+    static SQLiteDatabase mDatabase;
+    Cursor mainCursor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,6 +59,14 @@ public class ViewProduct extends AppCompatActivity  {
         upcCode = getIntent().getStringExtra("upcCode");
         mContext = getApplicationContext();
 
+        ProductListDbHelper dbHelper = new ProductListDbHelper(this);
+        mDatabase = dbHelper.getWritableDatabase();
+        mainCursor = getAllProductItems();
+        mRecyclerview = (RecyclerView) findViewById(R.id.walmart_recycler_view);
+        mLayoutManager = new LinearLayoutManager(this);
+        mRecyclerview.setHasFixedSize(true);
+        mRecyclerview.setLayoutManager(mLayoutManager);
+
         // close the activity in case of empty barcode
         if (TextUtils.isEmpty(upcCode)) {
             Toast.makeText(getApplicationContext(), "Barcode is empty!", Toast.LENGTH_LONG).show();
@@ -70,11 +78,16 @@ public class ViewProduct extends AppCompatActivity  {
         new mAsyncTask().execute(upcCode);
     }
 
+    private Cursor getAllProductItems() {
+        return mDatabase.query(ProductListContract.ProductListEntry.TABLE_NAME,
+                null, null, null, null, null, null);
+    }
+
     public class mAsyncTask extends AsyncTask<String, Void, WalmartItem>{
 
         @Override
         protected WalmartItem doInBackground(String... barcodes) {
-            Log.v("ViewProduct.Activity", "barcode in DoInBackground() is :" + barcodes[0]);
+            Log.v("ProductListActivity", "barcode in DoInBackground() is :" + barcodes[0]);
             String productStream = retrieveProductInfo(barcodes[0]);
             Log.v("ViewProductActivity", "product stream is: " + productStream);
             WalmartSearchResult result = gson.fromJson(productStream, WalmartSearchResult.class);
@@ -85,21 +98,18 @@ public class ViewProduct extends AppCompatActivity  {
         @Override
         protected void onPostExecute(WalmartItem item) {
             super.onPostExecute(item);
-            ViewProduct.this.mProductNameTextView.setText(item.getName());
-            ViewProduct.setImage(item.getLargeImage());
+            ProductListActivity.this.mProductNameTextView.setText(item.getName());
+            ProductListActivity.setImage(item.getLargeImage());
             String price = item.getSalePrice();
             String fixedSalePrice = "$" + price.substring(0, price.length() - 2) + "." +
                     price.substring(price.length()-2);
-            ViewProduct.this.mPriceTextView.setText(fixedSalePrice );
-
-
+            ProductListActivity.this.mPriceTextView.setText(fixedSalePrice );
         }
     }
 
     private static void setImage(String thumbnailImage) {
-        //ViewProduct.GlideApp.with(mContext).load(thumbnailImage).into(mImageView);
+        //ProductListActivity.GlideApp.with(mContext).load(thumbnailImage).into(mImageView);
         Picasso.with(mContext).load(thumbnailImage).into(mImageView);
-
     }
 
     private String retrieveProductInfo(String barcode) {
@@ -112,7 +122,7 @@ public class ViewProduct extends AppCompatActivity  {
             connection.setRequestMethod("GET");
             connection.connect();
             int status = connection.getResponseCode();
-            Log.v("ViewProduct.Activity", status + " is the response code");
+            Log.v("ProductListActivity", status + " is the response code");
             if(status == 503 || status == 504)
                 result = "503/504 error. Please wait.";
             else if(status != HttpURLConnection.HTTP_OK && status != 503 && status != 504)
@@ -122,7 +132,7 @@ public class ViewProduct extends AppCompatActivity  {
                 result = readStream(stream);
             connection.disconnect();
         }catch (IOException e){
-            Log.e("ViewProduct.Activity", e.toString());
+            Log.e("ProductListActivity", e.toString());
         }
 
         return result;
@@ -147,7 +157,7 @@ public class ViewProduct extends AppCompatActivity  {
                 .appendQueryParameter("apiKey", WALMART_API_KEY)
                 .appendQueryParameter("upc", upcCode);
         String newUrl = builder.build().toString();
-        Log.v("ViewProduct.Activity", "The URL is: " + newUrl);
+        Log.v("ProductListActivity", "The URL is: " + newUrl);
         return newUrl;
     }
 }
