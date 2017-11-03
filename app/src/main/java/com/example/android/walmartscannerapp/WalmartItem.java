@@ -10,11 +10,17 @@ public class WalmartItem {
     private String upc;
     private attributes attributes;
     private String largeImage;
+    private String thumbnailImage;
     private String salePrice;
 
     /**
      * The getters and setters essentially seem pointless.
      */
+    public String getThumbnailImage() {return thumbnailImage;}
+
+    public void setThumbnailImage(String thumbnailImage) {this.thumbnailImage = thumbnailImage;}
+
+
     public String getName(){return name;}
 
     public String getShortDescription(){return longDescription;}

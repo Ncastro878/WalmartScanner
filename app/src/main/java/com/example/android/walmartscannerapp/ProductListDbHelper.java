@@ -13,7 +13,7 @@ import static android.R.attr.version;
 public class ProductListDbHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "productList.db";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
 
     public ProductListDbHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -27,6 +27,7 @@ public class ProductListDbHelper extends SQLiteOpenHelper {
                 ProductListContract.ProductListEntry.PRODUCT_NAME + " TEXT," +
                 ProductListContract.ProductListEntry.PRODUCT_PRICE + " TEXT," +
                 ProductListContract.ProductListEntry.PRODUCT_IMG + " TEXT," +
+                ProductListContract.ProductListEntry.PRODUCT_SMALL_IMG + " TEXT," +
                 ProductListContract.ProductListEntry.PRODUCT_QUANTITY + " INTEGER);";
         sqLiteDatabase.execSQL(SQL_CREATE_TABLE_STATEMENT);
     }

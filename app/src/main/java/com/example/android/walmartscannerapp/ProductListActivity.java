@@ -1,6 +1,9 @@
 package com.example.android.walmartscannerapp;
 
+import android.app.AlertDialog;
+import android.content.ContentValues;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
@@ -11,6 +14,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -40,15 +44,16 @@ public class ProductListActivity extends AppCompatActivity  {
     /**
      * New RecyclerView/SQLite Variables
      */
-    RecyclerView mRecyclerview;
+    RecyclerView mRecyclerView;
     RecyclerView.LayoutManager mLayoutManager;
     static SQLiteDatabase mDatabase;
     Cursor mainCursor;
+    MyAdapter mAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_view_product);
+        setContentView(R.layout.activity_product_list);
 
         mImageView = (ImageView) findViewById(R.id.thumbnail_image);
         mProductNameTextView = (TextView) findViewById(R.id.product_name);
@@ -62,10 +67,12 @@ public class ProductListActivity extends AppCompatActivity  {
         ProductListDbHelper dbHelper = new ProductListDbHelper(this);
         mDatabase = dbHelper.getWritableDatabase();
         mainCursor = getAllProductItems();
-        mRecyclerview = (RecyclerView) findViewById(R.id.walmart_recycler_view);
+        mAdapter = new MyAdapter(this, mainCursor);
+        mRecyclerView = (RecyclerView) findViewById(R.id.walmart_recycler_view);
         mLayoutManager = new LinearLayoutManager(this);
-        mRecyclerview.setHasFixedSize(true);
-        mRecyclerview.setLayoutManager(mLayoutManager);
+        mRecyclerView.setHasFixedSize(true);
+        mRecyclerView.setLayoutManager(mLayoutManager);
+        mRecyclerView.setAdapter(mAdapter);
 
         // close the activity in case of empty barcode
         if (TextUtils.isEmpty(upcCode)) {
@@ -100,11 +107,47 @@ public class ProductListActivity extends AppCompatActivity  {
             super.onPostExecute(item);
             ProductListActivity.this.mProductNameTextView.setText(item.getName());
             ProductListActivity.setImage(item.getLargeImage());
-            String price = item.getSalePrice();
-            String fixedSalePrice = "$" + price.substring(0, price.length() - 2) + "." +
-                    price.substring(price.length()-2);
-            ProductListActivity.this.mPriceTextView.setText(fixedSalePrice );
+            ProductListActivity.this.mPriceTextView.setText(item.getSalePrice() );
+            addItemDialog(item);
         }
+    }
+
+    private void addItemDialog(final WalmartItem item) {
+        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
+        View dialogView = this.getLayoutInflater().inflate(R.layout.dialog_view, null);
+
+        TextView tv = dialogView.findViewById(R.id.dialog_product_name);
+        TextView priceView = dialogView.findViewById(R.id.dialog_product_price);
+        ImageView imgView = dialogView.findViewById(R.id.dialog_product_img_view);
+        tv.setText(item.getName());
+        priceView.setText(item.getSalePrice());
+        Picasso.with(mContext).load(item.getLargeImage()).into(imgView);
+
+        dialogBuilder.setTitle("Add to cart?");
+        dialogBuilder.setView(dialogView).setPositiveButton("Add", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                //TODO- ADD TO CART
+                Toast.makeText(ProductListActivity.this, "Item Added", Toast.LENGTH_SHORT).show();
+                addItemToDb(item);
+            }
+        }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+            }
+        }).create().show();
+    }
+
+    private void addItemToDb(WalmartItem item) {
+        ContentValues cv = new ContentValues();
+        cv.put(ProductListContract.ProductListEntry.PRODUCT_NAME, item.getName());
+        cv.put(ProductListContract.ProductListEntry.PRODUCT_PRICE, item.getSalePrice());
+        cv.put(ProductListContract.ProductListEntry.PRODUCT_IMG, item.getLargeImage());
+        cv.put(ProductListContract.ProductListEntry.PRODUCT_SMALL_IMG, item.getThumbnailImage());
+        Long num = mDatabase.insert(ProductListContract.ProductListEntry.TABLE_NAME, null, cv);
+        Log.v("ProductListActivity", "Book is inserted. Num value is: " + num);
+        mainCursor = getAllProductItems();
+        mAdapter.swapCursor(mainCursor);
     }
 
     private static void setImage(String thumbnailImage) {
@@ -134,7 +177,6 @@ public class ProductListActivity extends AppCompatActivity  {
         }catch (IOException e){
             Log.e("ProductListActivity", e.toString());
         }
-
         return result;
     }
 

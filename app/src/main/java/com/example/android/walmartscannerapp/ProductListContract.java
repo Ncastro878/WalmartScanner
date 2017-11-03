@@ -14,5 +14,6 @@ public class ProductListContract {
         public static final String PRODUCT_PRICE = "productPrice";
         public static final String PRODUCT_IMG = "productImg";
         public static final String PRODUCT_QUANTITY = "productQuantity";
+        public static final String PRODUCT_SMALL_IMG = "productSmallImg";
     }
 }
