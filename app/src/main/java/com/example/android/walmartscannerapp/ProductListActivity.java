@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
@@ -14,6 +15,9 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -75,17 +79,16 @@ public class ProductListActivity extends AppCompatActivity  {
         mRecyclerView.setAdapter(mAdapter);
 
         // close the activity in case of empty barcode
-        if (TextUtils.isEmpty(upcCode)) {
+        if (! TextUtils.isEmpty(upcCode)) {
             Toast.makeText(getApplicationContext(), "Barcode is empty!", Toast.LENGTH_LONG).show();
-            //Lets try not closing it yet, since leads to inventory list
-            //finish();
-        }
-        mBarcodeNumberTextView.setText(upcCode + " is the barcode number.");
 
-        new mAsyncTask().execute(upcCode);
+            mBarcodeNumberTextView.setText(upcCode + " is the barcode number.");
+            new mAsyncTask().execute(upcCode);
+        }
+
     }
 
-    private Cursor getAllProductItems() {
+    public static Cursor getAllProductItems() {
         return mDatabase.query(ProductListContract.ProductListEntry.TABLE_NAME,
                 null, null, null, null, null, null);
     }
@@ -107,7 +110,7 @@ public class ProductListActivity extends AppCompatActivity  {
             super.onPostExecute(item);
             ProductListActivity.this.mProductNameTextView.setText(item.getName());
             ProductListActivity.setImage(item.getLargeImage());
-            ProductListActivity.this.mPriceTextView.setText(item.getSalePrice() );
+            ProductListActivity.this.mPriceTextView.setText("$" + item.getSalePrice() );
             addItemDialog(item);
         }
     }
@@ -156,7 +159,7 @@ public class ProductListActivity extends AppCompatActivity  {
     }
 
     private String retrieveProductInfo(String barcode) {
-        InputStream stream = null;
+        InputStream stream;
         String result = null;
         try{
             String url = buildUrl(barcode);
@@ -201,5 +204,28 @@ public class ProductListActivity extends AppCompatActivity  {
         String newUrl = builder.build().toString();
         Log.v("ProductListActivity", "The URL is: " + newUrl);
         return newUrl;
+    }
+
+    public static boolean removeProduct(long id){
+        return mDatabase.delete(ProductListContract.ProductListEntry.TABLE_NAME,
+                ProductListContract.ProductListEntry._ID + " = " + id, null) > 0;
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        super.onCreateOptionsMenu(menu);
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.product_list_activity_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch(item.getItemId()) {
+            case R.id.main_activity_menu_item:
+                startActivity(new Intent(ProductListActivity.this, MainActivity.class));
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 }
