@@ -1,4 +1,4 @@
-package com.example.android.walmartscannerapp;
+package com.example.android.walmartscannerapp.databaseClasss;
 
 import android.provider.BaseColumns;
 

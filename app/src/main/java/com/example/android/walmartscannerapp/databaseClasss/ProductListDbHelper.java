@@ -1,10 +1,8 @@
-package com.example.android.walmartscannerapp;
+package com.example.android.walmartscannerapp.databaseClasss;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-
-import static android.R.attr.version;
 
 /**
  * Created by nick on 11/2/2017.

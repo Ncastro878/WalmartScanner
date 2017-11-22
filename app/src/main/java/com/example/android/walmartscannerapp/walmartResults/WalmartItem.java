@@ -1,4 +1,4 @@
-package com.example.android.walmartscannerapp;
+package com.example.android.walmartscannerapp.walmartResults;
 
 /**
  * Created by nick on 10/22/2017.

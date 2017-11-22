@@ -23,6 +23,10 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.android.walmartscannerapp.databaseClasss.ProductListContract;
+import com.example.android.walmartscannerapp.databaseClasss.ProductListDbHelper;
+import com.example.android.walmartscannerapp.walmartResults.WalmartItem;
+import com.example.android.walmartscannerapp.walmartResults.WalmartSearchResult;
 import com.google.gson.Gson;
 import com.squareup.picasso.Picasso;
 

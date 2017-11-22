@@ -2,7 +2,6 @@ package com.example.android.walmartscannerapp;
 
 import android.content.Context;
 import android.database.Cursor;
-import android.media.Image;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -12,12 +11,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.android.walmartscannerapp.databaseClasss.ProductListContract;
 import com.squareup.picasso.Picasso;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static java.lang.System.load;
 
 /**
  * Created by nick on 11/2/2017.
